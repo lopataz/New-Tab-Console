@@ -1,0 +1,19 @@
+{
+  "name": "New Tab Console",
+  "description": "It overrides the new tab page with a typing console",
+  "version": "2.0",
+  "icons": { "16": "icons/16.png",
+			"48": "icons/48.png",
+          "128": "icons/128.png" },
+  "incognito": "split",
+  "options_page": "options.html",
+  "options_ui": {
+    "page": "options.html",
+    "open_in_tab": false
+  },
+  "chrome_url_overrides": { "newtab": "newtab.html" },
+  "permissions": [
+      "storage"
+    ],
+  "manifest_version": 2
+}

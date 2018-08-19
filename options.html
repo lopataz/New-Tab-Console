@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head><title>Console Options</title></head>
+<body>
+
+Console's background color:
+<select id="color">
+ <option value="000000">black</option>
+ <option value="797979">dark gray</option>
+ <option value="eaeaea">light gray</option>
+ <option value="658CFA">blue</option>
+</select>
+<br>
+Empty Console on New Tab (click shows it) <input type="checkbox" id="apparent">
+
+<div id="status"></div>
+<button id="save">Save</button>
+<br><br>
+<div>Available commands (shift Enter(x2) on a new line):
+<ul>
+<li><strong>save</strong> (Saves current display)</li>
+<li><strong>erase</strong> (Erases last save)</li>
+<li><strong>clear</strong> (Clears whole console)</li>
+<li><strong>help</strong> (Displays the current commands)</li>
+</ul>
+</div>
+
+<script src="options.js"></script>
+</body>
+</html>
