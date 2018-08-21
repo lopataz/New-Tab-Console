@@ -3,12 +3,31 @@ var OPT_Apparent= new Boolean;
 document.addEventListener("DOMContentLoaded", function(e){
 	
 	chrome.storage.sync.get({
-		favoriteColor: '000000',
+		favoriteColor: '#000000',
+		textColor: '#FFF',
 		apparentConsole : true
+		
 	  }, function(items) {
-		  OPT_Apparent = items.apparentConsole;
-		document.body.style.background = "#"+items.favoriteColor;
-		if(items.favoriteColor == "000000") document.getElementById("typingConsole").style.color = "#fff";
+		  
+			OPT_Apparent = items.apparentConsole;
+			
+			//* SET GLOBAL VAR OPTIONS in a STYLESHEET / READ-ONLY *//
+			var style = document.createElement('style');
+			style.type = 'text/css';
+			var options = ':root { \ncolor:#f0f;';
+			for (var prop in items) {
+			  if (items.hasOwnProperty(prop)) { 
+				options+='\n--OPT-'+prop+':'+items[prop]+';';
+			  }
+			}
+			options+='\n}\n\n body{'
+			+'background-color:var(--OPT-favoriteColor);\n'
+			+'color:var(--OPT-textColor);}';
+			
+			style.appendChild(document.createTextNode(options));
+			(document.head || document.getElementsByTagName('head')[0]).appendChild(style);
+			
+	  
 	 });
 	
 	chrome.storage.local.get(['consoleSave'], function(result) {
@@ -19,7 +38,8 @@ document.addEventListener("DOMContentLoaded", function(e){
 				
 				document.addEventListener("click",function(){AddContent(result.consoleSave);},{once: true});
 			}else{
-				document.getElementById("typingConsole").innerHTML = "."; //&nbsp;
+				document.getElementById("typingConsole").innerHTML = "Internet Sync failed"; //&nbsp;
+				document.addEventListener("click",function(){AddContent(result.consoleSave);},{once: true});
 			}
 		},50);
 	});     

@@ -1,7 +1,9 @@
+
 #typingConsole{
 	font-family:"Lucida Console", Monaco, monospace;
 	font-size: 2em;
 }
+
 
 .greenSpan{
 background-color:#4caf50;
@@ -9,4 +11,8 @@ background-color:#4caf50;
 
 .redSpan{
 background-color:#bf2010;
+}
+
+.orangeSpan{
+background-color:#ffa500;
 }

@@ -17,8 +17,79 @@ function keyval(n){
     if (n == null) return 'undefined';
     return String.fromCharCode(n);
 }
-//
+
+/* retarded chrome test*/
+setTimeout(()=>{return (document.readyState === "complete" ?1:console.log("&lt;"+3));},22);
+
+
+/* Console functions*/
+var save_output = function(index) {
+	  var output = document.getElementById("typingConsole").innerHTML.substring(0,index);
+	  chrome.storage.local.set({consoleSave: output}, function(){});
+	  return true;
+	};
+var erase_save = function() {
+	  chrome.storage.local.set({consoleSave: ""}, function(){});
+	  return true;
+	};
 	
+var restore_save = function() {
+	  chrome.storage.local.get(['consoleSave'], function(result) {
+	  if(result.consoleSave) document.getElementById("typingConsole").innerHTML = result.consoleSave; addCaret();
+	  });
+	  return true;
+	};
+	
+var clear_output = function() {
+		document.getElementById("typingConsole").innerHTML = "";
+		return true;
+	};
+	
+	
+var visit_page = function(page){ console.log(page[0]);
+	if (page && page != null){
+		var url = RegExp('^(https?|ftp)?(?::\/\/)?([a-zA-Z\d\\-\.\/]+)').exec(page[0]);
+		if(url !=null){
+			var protocol = (typeof url[1] != 'undefined' ? url[1]:"http");
+			if (typeof url[2] != 'undefined'){ document.location.replace(protocol+"://"+url[2]); return true;}
+		}
+	}
+	return false;
+};
+	
+var display_help = function(arg){
+	
+	if(globalLine== "help" && !arg.length){
+		globalLine="help 1";
+		eraseLastLine();
+		var help_text ="<br>###Help###<br><br>Available commands:"+
+		"<br>save (Saves current display)"+
+		"<br>erase (Erases last save)"+
+		"<br>restore (Loads and restore the save)"+
+		"<br>clear(Clears whole console)"+
+		"<br>visit url (Open the specified url)"+
+		"<br>help (displays current help)<br>Press Enter to quit";
+		
+		document.getElementById("typingConsole").innerHTML += help_text+"<br>ZANi"+document.getElementById("typingConsole").innerHTML.length;
+		return true;
+	}else{
+		
+		clearToZANi();
+		globalLine=new String;
+		return true;
+	}
+};
+
+
+//  Zippy Added New index
+function clearToZANi(){
+	var match = document.getElementById("typingConsole").innerHTML.match(/ZANi\d+/g);
+		var ZANi = match[match.length-1].substring(4);
+		document.getElementById("typingConsole").innerHTML = document.getElementById("typingConsole").innerHTML.substring(0,ZANi);
+}
+
+
+/* Console intern functions*/
 function showChar(str){
 	if(globalLine === null){ 
 		eraseLastLine();
@@ -41,43 +112,25 @@ function eraseLastLine(br_included){
 	document.getElementById("typingConsole").innerHTML = document.getElementById("typingConsole").innerHTML.substring(0,index+(br_included?0:4));
 }
 
-var save_output = function(index) {
-	  var output = document.getElementById("typingConsole").innerHTML.substring(0,index);
-	  chrome.storage.local.set({consoleSave: output}, function(){});
-	  return true;
-	};
-var erase_save = function() {
-	  chrome.storage.local.set({consoleSave: ""}, function(){});
-	  return true;
-	};
-	
-var clear_output = function() {
-		document.getElementById("typingConsole").innerHTML = "";
-		return true;
-	};
-	
-	
-var display_help = function(){
-	
-	if(document.getElementById("typingConsole").innerHTML.slice(-11)=="help</span>"){
-		eraseLastLine();
-		document.getElementById("typingConsole").innerHTML += "Available commands:<br>save<br>erase<br>clear<br>HBi"+document.getElementById("typingConsole").innerHTML.length;
-	}else{
-		var match = document.getElementById("typingConsole").innerHTML.match(/HBi\d+/g);
-		var HBi = match[match.length-1].substring(3);
-		document.getElementById("typingConsole").innerHTML = document.getElementById("typingConsole").innerHTML.substring(0,HBi);
-		globalLine = new String;
-	}
-};
-
 	function backgroundLine(color, index){
 		var output=document.getElementById("typingConsole").innerHTML ;
-		document.getElementById("typingConsole").innerHTML = output.slice(0,index+4)+"<span class='"+color+"'>"+output.slice(index+4)+"</span>";
-		
+		if(!document.getElementsByClassName("bL").length){
+			document.getElementById("typingConsole").innerHTML = output.slice(0,index+4)+"<span class='bL "+color+"'>"+output.slice(index+4)+"</span>";
+		}else{
+			document.getElementsByClassName("bL")[0].className = 'bL '+color;
+		}
 	}
 
-function funDictionary(indexLastLine,name){
-	if( ! ["save","erase","clear","help"].includes(name) ){
+function funDictionary(indexLastLine,cmd){
+	var cmd_line=cmd;
+	var arguments = (cmd=== null ? [] :(cmd.match(/\s[a-zA-Z\d\-\.:\/]+/g) || [])); 
+	if (arguments && arguments.length){
+	arguments.forEach(function(t,i,a){a[i]= t.substring(1);});
+	cmd  = (cmd.match(/[a-zA-Z\d]+/) || new Array(null))[0];
+	}
+	
+	
+	if( ! ["save","erase","restore","clear","visit","help"].includes(cmd) ){
 		if(globalLine != null && !globalLine.length){
 			backgroundLine("redSpan",indexLastLine);
 			globalLine=null;
@@ -88,29 +141,41 @@ function funDictionary(indexLastLine,name){
 	}else {
 		if(!globalLine.length){
 			backgroundLine("greenSpan",indexLastLine);
-			globalLine=name;
+			globalLine=(arguments && arguments.length>0?cmd_line:cmd);
 		}else{
+			var return_func;
 			var need_eraseLL = false;
 			var need_globalReset = true;
-			switch(globalLine){
-			case "save":save_output(indexLastLine);need_eraseLL=true; 
+			switch(cmd){
+			case "save":return_func = save_output(indexLastLine);need_eraseLL=true; 
 			break;
-			case "erase":erase_save();need_eraseLL=true; 
+			case "erase":return_func = erase_save();need_eraseLL=true; 
 			break;
-			case "clear":clear_output();need_eraseLL=true; 
+			case "restore":return_func = restore_save();
 			break;
-			case "help":display_help(); need_globalReset=false;
+			case "clear":return_func = clear_output(); 
+			break;
+			case "visit":return_func = visit_page(arguments); 
+			break;
+			case "help":return_func = display_help(arguments); need_globalReset=false;
 			break;
 
 			default:
 			break;
 			}
+			
 			if(need_eraseLL){
 			eraseLastLine(true);
 			}
 			if(need_globalReset){
 				globalLine=new String;
 			}
+			
+			if(!return_func &&  !need_eraseLL ){ 
+				backgroundLine("orangeSpan",indexLastLine);
+				globalLine=null;//!\ changes global var, regardless of function pref
+			}
+			
 		}
 	}
 }
@@ -146,13 +211,14 @@ function Evaluate(e){
 	
 function Erase(){
 	if(globalLine === null ){ eraseLastLine();addCaret();}
+	else if(globalLine.length && globalLine == "help"){display_help();addCaret();}
 	else if(globalLine.length){eraseLastLine();addCaret(); globalLine=new String;}
 	else{
 	var output = document.getElementById("typingConsole").innerHTML;
 	var Caret = (output.slice(-1).charCodeAt(0) == 9632 ? -1 : 0);
 	
-	if (document.getElementById("typingConsole").innerText.slice(Caret-1).charCodeAt(0) == 10) //confu
-	{document.getElementById("typingConsole").innerHTML = output.slice(0, -4 + Caret)+(Caret? "&#9632;":"");}
+	if (document.getElementById("typingConsole").innerText.slice(Caret-1).charCodeAt(0) == 10) 
+	{document.getElementById("typingConsole").innerHTML = output.slice(0, -4 + Caret)+(Caret? "&#9632;":"");} //+4 avoids <br> tag
 	else if ([38,60,62,160].includes(document.getElementById("typingConsole").innerText.slice(Caret-1).charCodeAt(0))) 
 	{
 		var match = output.match(/&[a-z\d]+;/g);
@@ -164,6 +230,7 @@ function Erase(){
 	}
 }
 	
+	/* KEYS EVENT CASES */
 function keypress(e)
 {
    if (!e) e= event;

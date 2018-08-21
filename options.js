@@ -1,10 +1,9 @@
-
-
 function save_options() {
   var color = document.getElementById('color').value;
    var apparent = document.getElementById('apparent').checked;
   chrome.storage.sync.set({
     favoriteColor: color,
+	textColor:(color == "#000000"? "#FFF" : "#000"),
 	apparentConsole : apparent
   }, function() {
     // Update status to let user know options were saved.
@@ -21,7 +20,7 @@ function save_options() {
 function restore_options() {
   // Use default value color = 'red' and likesColor = true.
   chrome.storage.sync.get({
-    favoriteColor: '000000',
+    favoriteColor: '#000000',
 	apparentConsole:true
   }, function(items) {
     document.getElementById('color').value = items.favoriteColor;
