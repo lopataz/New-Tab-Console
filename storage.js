@@ -1,15 +1,25 @@
 var OPT_Apparent= new Boolean;
+var OPTIONS = new Array;
+
+
+import colorFromData from './computeDataModule.js';
+export let colorSave = new colorFromData('');
 
 document.addEventListener("DOMContentLoaded", function(e){
 	
 	chrome.storage.sync.get({
-		favoriteColor: '#000000',
+		favoriteColor: 'initial',
 		textColor: '#FFF',
-		apparentConsole : true
+		apparentConsole : true,
+		soundVolume:0,
+		colorSatu:180
 		
 	  }, function(items) {
-		  
 			OPT_Apparent = items.apparentConsole;
+			
+			if(items.favoriteColor=='initial') items.Dynamic=true; else items.Dynamic=false;
+			
+			OPTIONS=items;
 			
 			//* SET GLOBAL VAR OPTIONS in a STYLESHEET / READ-ONLY *//
 			var style = document.createElement('style');
@@ -27,15 +37,16 @@ document.addEventListener("DOMContentLoaded", function(e){
 			style.appendChild(document.createTextNode(options));
 			(document.head || document.getElementsByTagName('head')[0]).appendChild(style);
 			
-	  
+			document.title = "New tab Console";
 	 });
 	
 	chrome.storage.local.get(['consoleSave'], function(result) {
+		if (result.consoleSave === undefined) result.consoleSave = '';
+		colorSave.setData(result.consoleSave);
 		setTimeout(function(){
 			if (typeof OPT_Apparent == "boolean" && !OPT_Apparent){ 
 				AddContent(result.consoleSave);
 			}else if(typeof OPT_Apparent != "Object"){
-				
 				document.addEventListener("click",function(){AddContent(result.consoleSave);},{once: true});
 			}else{
 				document.getElementById("typingConsole").innerHTML = "Internet Sync failed"; //&nbsp;
@@ -47,9 +58,11 @@ document.addEventListener("DOMContentLoaded", function(e){
 
 
 function AddContent(consoleSave){
-	if(consoleSave && consoleSave.length){ 
-		document.getElementById("typingConsole").innerHTML = consoleSave+"&#9632;";
-	}else{
-		document.getElementById("typingConsole").innerHTML="&#9632;";
-	}
+	
+	
+	var cool = colorSave.color(OPTIONS.colorSatu); //in order to get the sounds inits
+	if(OPTIONS.Dynamic) document.body.style.backgroundColor = cool;
+	if(OPTIONS.soundVolume) colorSave.sound(parseFloat(OPTIONS.soundVolume));
+	
+	document.getElementById("typingConsole").innerHTML = (consoleSave && consoleSave.length? consoleSave : "" )+"&#9632;";
 }

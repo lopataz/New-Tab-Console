@@ -1,17 +1,29 @@
 <!DOCTYPE html>
 <html>
-<head><title>Console Options</title></head>
+<head><title>Console Options</title>
+</head>
 <body>
 
 Console's background color:
 <select id="color">
- <option value="#000000">black</option>
- <option value="#797979">dark gray</option>
- <option value="#eaeaea">light gray</option>
+<option value="initial">Dynamic</option>
+ <option value="#000000">Grayscale</option>
  <option value="#658CFA">blue</option>
 </select>
 <br>
+Console's background saturation:
+<table ><tr>
+<td style= "position:relative;"><div  id="SatuLimit" style= "position:absolute;left:72%;z-index: -1;">|</div><input id='colorSatu' type="range" min="25" max = "255" value="180" style="z-index: 1;"/></td><td id="satuExample" style="background-color:#524261;width:25px;margin"></td>
+</tr></table>
 Empty Console on New Tab (click shows it) <input type="checkbox" id="apparent">
+<br>
+Sound Volume:
+<select id="volume">
+<option value="0">off</option>
+<option value="0.0099">discret</option>
+<option value="0.0999">low</option>
+ <option value="0.5">loud</option>
+</select>
 
 <div id="status"></div>
 <button id="save">Save</button>

@@ -1,3 +1,13 @@
+class Console { 
+constructor(){this.console = document.getElementById("typingConsole"); } 
+get Element(){ return this.console;}
+get innerHTML(){ return this.console.innerHTML; }
+get innerText(){ return this.console.innerText; }
+};
+
+// globals //
+let myConsole = new Console();
+var OPTIONS = new Array;
 var globalLine = new String(""); //determines if the last line has background-color
 	
 /* Keys events */	
@@ -18,30 +28,53 @@ function keyval(n){
     return String.fromCharCode(n);
 }
 
-/* retarded chrome test*/
-setTimeout(()=>{return (document.readyState === "complete" ?1:console.log("&lt;"+3));},22);
+/* retarded Options sync retrieval*/
+setTimeout(function(){
+	OPTIONS.Dynamic = (getComputedStyle(document.documentElement).getPropertyValue("--OPT-Dynamic") == "true");
+	OPTIONS.colorSatu = getComputedStyle(document.documentElement).getPropertyValue("--OPT-colorSatu");
+	OPTIONS.soundVolume = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--OPT-soundVolume"));
+	
+},25);
 
+// //import * as computeDataModule from './computeDataModule.js';
+import colorFromData from './computeDataModule.js';
+import {colorSave} from './storage.js';
 
 /* Console functions*/
 var save_output = function(index) {
-	  var output = document.getElementById("typingConsole").innerHTML.substring(0,index);
-	  chrome.storage.local.set({consoleSave: output}, function(){});
+	  var output = myConsole.Element.innerHTML.substring(0,index);
+	  chrome.storage.local.set({consoleSave: output}, function(){
+			colorSave.setData(output);
+			var cool = colorSave.color(OPTIONS.colorSatu); 
+			if(OPTIONS.Dynamic) document.body.style.backgroundColor = cool;
+			if(OPTIONS.soundVolume) colorSave.sound(OPTIONS.soundVolume);
+	  });
 	  return true;
 	};
 var erase_save = function() {
-	  chrome.storage.local.set({consoleSave: ""}, function(){});
+	  chrome.storage.local.remove("consoleSave", function(){ 
+			colorSave.setData("");
+			var cool = colorSave.color(OPTIONS.colorSatu); 
+			if(OPTIONS.Dynamic) document.body.style.backgroundColor = cool;
+			if(OPTIONS.soundVolume) colorSave.sound(OPTIONS.soundVolume);
+		  });
 	  return true;
 	};
 	
 var restore_save = function() {
 	  chrome.storage.local.get(['consoleSave'], function(result) {
-	  if(result.consoleSave) document.getElementById("typingConsole").innerHTML = result.consoleSave; addCaret();
+		 colorSave.setData(result.consoleSave? result.consoleSave: "");
+		 myConsole.Element.innerHTML = colorSave.output;
+		 addCaret();
+			var cool = colorSave.color(OPTIONS.colorSatu); 
+			if(OPTIONS.Dynamic) document.body.style.backgroundColor = cool;
+			if(OPTIONS.soundVolume) colorSave.sound(OPTIONS.soundVolume);
 	  });
 	  return true;
 	};
 	
 var clear_output = function() {
-		document.getElementById("typingConsole").innerHTML = "";
+		myConsole.Element.innerHTML = "";
 		return true;
 	};
 	
@@ -65,12 +98,12 @@ var display_help = function(arg){
 		var help_text ="<br>###Help###<br><br>Available commands:"+
 		"<br>save (Saves current display)"+
 		"<br>erase (Erases last save)"+
-		"<br>restore (Loads and restore the save)"+
+		"<br>restore (Loads the save)"+
 		"<br>clear(Clears whole console)"+
-		"<br>visit url (Open the specified url)"+
+		"<br>visit url (Goes to the specified url)"+
 		"<br>help (displays current help)<br>Press Enter to quit";
 		
-		document.getElementById("typingConsole").innerHTML += help_text+"<br>ZANi"+document.getElementById("typingConsole").innerHTML.length;
+		myConsole.Element.innerHTML += help_text+"<br>ZANi"+myConsole.Element.innerHTML.length;
 		return true;
 	}else{
 		
@@ -83,9 +116,9 @@ var display_help = function(arg){
 
 //  Zippy Added New index
 function clearToZANi(){
-	var match = document.getElementById("typingConsole").innerHTML.match(/ZANi\d+/g);
+	var match = myConsole.Element.innerHTML.match(/ZANi\d+/g);
 		var ZANi = match[match.length-1].substring(4);
-		document.getElementById("typingConsole").innerHTML = document.getElementById("typingConsole").innerHTML.substring(0,ZANi);
+		myConsole.Element.innerHTML = myConsole.Element.innerHTML.substring(0,ZANi);
 }
 
 
@@ -95,7 +128,7 @@ function showChar(str){
 		eraseLastLine();
 		globalLine=new String;
 	}else if(!globalLine.length){ 
-	var Div = document.getElementById("typingConsole");
+	var Div = myConsole.Element;
 	var content = document.createTextNode(str);
 	Div.appendChild(content);
 	}
@@ -103,13 +136,13 @@ function showChar(str){
 
 function showHTML(str)
 {
-	document.getElementById("typingConsole").innerHTML+= str;
+	myConsole.Element.innerHTML+= str;
 }
 
 
 function eraseLastLine(br_included){
-	if(index === undefined) var index=document.getElementById("typingConsole").innerHTML.lastIndexOf("<br>");
-	document.getElementById("typingConsole").innerHTML = document.getElementById("typingConsole").innerHTML.substring(0,index+(br_included?0:4));
+	if(index === undefined) var index=myConsole.Element.innerHTML.lastIndexOf("<br>");
+	myConsole.Element.innerHTML = document.getElementById("typingConsole").innerHTML.substring(0,index+(br_included?0:4));
 }
 
 	function backgroundLine(color, index){
@@ -123,9 +156,9 @@ function eraseLastLine(br_included){
 
 function funDictionary(indexLastLine,cmd){
 	var cmd_line=cmd;
-	var arguments = (cmd=== null ? [] :(cmd.match(/\s[a-zA-Z\d\-\.:\/]+/g) || [])); 
-	if (arguments && arguments.length){
-	arguments.forEach(function(t,i,a){a[i]= t.substring(1);});
+	var args = (cmd=== null ? [] :(cmd.match(/\s[a-zA-Z\d\-\.:\/]+/g) || [])); 
+	if (args && args.length){
+	args.forEach(function(t,i,a){a[i]= t.substring(1);});
 	cmd  = (cmd.match(/[a-zA-Z\d]+/) || new Array(null))[0];
 	}
 	
@@ -141,7 +174,7 @@ function funDictionary(indexLastLine,cmd){
 	}else {
 		if(!globalLine.length){
 			backgroundLine("greenSpan",indexLastLine);
-			globalLine=(arguments && arguments.length>0?cmd_line:cmd);
+			globalLine=(args && args.length>0?cmd_line:cmd);
 		}else{
 			var return_func;
 			var need_eraseLL = false;
@@ -155,9 +188,9 @@ function funDictionary(indexLastLine,cmd){
 			break;
 			case "clear":return_func = clear_output(); 
 			break;
-			case "visit":return_func = visit_page(arguments); 
+			case "visit":return_func = visit_page(args); 
 			break;
-			case "help":return_func = display_help(arguments); need_globalReset=false;
+			case "help":return_func = display_help(args); need_globalReset=false;
 			break;
 
 			default:
