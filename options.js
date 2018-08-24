@@ -1,3 +1,5 @@
+const dynamicDefault ="#677999";
+
 function save_options() {
   var color = document.getElementById('color').value;  
   var volume = document.getElementById('volume').value;
@@ -5,7 +7,7 @@ function save_options() {
    var colorSatu = document.getElementById('colorSatu').value;
    var finalColor = document.getElementById('satuExample').style.backgroundColor;
   chrome.storage.sync.set({
-    favoriteColor: (color != "initial"? finalColor :'initial'),
+    favoriteColor: (color != dynamicDefault ? finalColor : dynamicDefault),
 	textColor:(colorSatu > 175? "#FFF" : "#000"),
 	apparentConsole : apparent,
 	soundVolume : volume,
@@ -25,7 +27,7 @@ function save_options() {
 function restore_options() {
   // Use default value color = 'red' and likesColor = true.
   chrome.storage.sync.get({
-    favoriteColor: 'initial',
+    favoriteColor: dynamicDefault,
 	apparentConsole:true,
 	soundVolume:0,
 	colorSatu: "180"
@@ -60,7 +62,7 @@ function setSelectedIndex(s, valsearch){
 
 document.getElementById('colorSatu').addEventListener("input", function() {
 	
-	if (document.getElementById('color').value == "initial" && this.value> 200) this.value = 200;
+	if (document.getElementById('color').value == dynamicDefault && this.value> 200) this.value = 200;
 	changeExampleSatu(this.value);
 });
 
@@ -71,7 +73,7 @@ document.getElementById('color').addEventListener("change", function() {
 
 
 function changeExampleSatu(saturation){
-	if(document.getElementById('color').value == "initial"){
+	if(document.getElementById('color').value == dynamicDefault){
 		
 		document.getElementById('satuExample').style.backgroundColor ="#524261"+parseInt(saturation).toString(16);
 		document.getElementById('SatuLimit').style.visibility = "visible";

@@ -1,5 +1,6 @@
 var OPT_Apparent= new Boolean;
 var OPTIONS = new Array;
+const dynamicDefault ="#677999";
 
 
 import colorFromData from './computeDataModule.js';
@@ -8,7 +9,7 @@ export let colorSave = new colorFromData('');
 document.addEventListener("DOMContentLoaded", function(e){
 	
 	chrome.storage.sync.get({
-		favoriteColor: 'initial',
+		favoriteColor: dynamicDefault,
 		textColor: '#FFF',
 		apparentConsole : true,
 		soundVolume:0,
@@ -17,7 +18,9 @@ document.addEventListener("DOMContentLoaded", function(e){
 	  }, function(items) {
 			OPT_Apparent = items.apparentConsole;
 			
-			if(items.favoriteColor=='initial') items.Dynamic=true; else items.Dynamic=false;
+			if(items.favoriteColor == dynamicDefault){ 
+			items.favoriteColor+=Number(items.colorSatu).toString(16);items.Dynamic=true; }
+			else{ items.Dynamic=false;}
 			
 			OPTIONS=items;
 			
