@@ -3,6 +3,10 @@ constructor(){this.console = document.getElementById("typingConsole"); }
 get Element(){ return this.console;}
 get innerHTML(){ return this.console.innerHTML; }
 get innerText(){ return this.console.innerText; }
+
+set ["innerHTML"](data) { this.console.innerHTML = data; }
+set ["innerText"](data) { this.console.innerText = data; }
+
 };
 
 // globals //
@@ -42,7 +46,7 @@ import {colorSave} from './storage.js';
 
 /* Console functions*/
 var save_output = function(index) {
-	  var output = myConsole.Element.innerHTML.substring(0,index);
+	  var output = myConsole.innerHTML.substring(0,index);
 	  chrome.storage.local.set({consoleSave: output}, function(){
 			colorSave.setData(output);
 			var cool = colorSave.color(OPTIONS.colorSatu); 
@@ -64,7 +68,7 @@ var erase_save = function() {
 var restore_save = function() {
 	  chrome.storage.local.get(['consoleSave'], function(result) {
 		 colorSave.setData(result.consoleSave? result.consoleSave: "");
-		 myConsole.Element.innerHTML = colorSave.output;
+		 myConsole.innerHTML = colorSave.output;
 		 addCaret();
 			var cool = colorSave.color(OPTIONS.colorSatu); 
 			if(OPTIONS.Dynamic) document.body.style.backgroundColor = cool;
@@ -74,7 +78,7 @@ var restore_save = function() {
 	};
 	
 var clear_output = function() {
-		myConsole.Element.innerHTML = "";
+		myConsole.innerHTML = "";
 		return true;
 	};
 	
@@ -103,7 +107,7 @@ var display_help = function(arg){
 		"<br>visit url (Goes to the specified url)"+
 		"<br>help (displays current help)<br>Press Enter to quit";
 		
-		myConsole.Element.innerHTML += help_text+"<br>ZANi"+myConsole.Element.innerHTML.length;
+		myConsole.innerHTML += help_text+"<br>ZANi"+myConsole.innerHTML.length;
 		return true;
 	}else{
 		
@@ -116,9 +120,9 @@ var display_help = function(arg){
 
 //  Zippy Added New index
 function clearToZANi(){
-	var match = myConsole.Element.innerHTML.match(/ZANi\d+/g);
+	var match = myConsole.innerHTML.match(/ZANi\d+/g);
 		var ZANi = match[match.length-1].substring(4);
-		myConsole.Element.innerHTML = myConsole.Element.innerHTML.substring(0,ZANi);
+		myConsole.innerHTML = myConsole.innerHTML.substring(0,ZANi);
 }
 
 
@@ -128,27 +132,27 @@ function showChar(str){
 		eraseLastLine();
 		globalLine=new String;
 	}else if(!globalLine.length){ 
-	var Div = myConsole.Element;
-	var content = document.createTextNode(str);
-	Div.appendChild(content);
+		var Div = myConsole.Element;
+		var content = document.createTextNode(str);
+		Div.appendChild(content);
 	}
 }
 
 function showHTML(str)
 {
-	myConsole.Element.innerHTML+= str;
+	myConsole.innerHTML+= str;
 }
 
 
 function eraseLastLine(br_included){
-	if(index === undefined) var index=myConsole.Element.innerHTML.lastIndexOf("<br>");
-	myConsole.Element.innerHTML = document.getElementById("typingConsole").innerHTML.substring(0,index+(br_included?0:4));
+	if(index === undefined) var index=myConsole.innerHTML.lastIndexOf("<br>");
+	myConsole.innerHTML = myConsole.innerHTML.substring(0,index+(br_included?0:4));
 }
 
 	function backgroundLine(color, index){
-		var output=document.getElementById("typingConsole").innerHTML ;
+		var output=myConsole.innerHTML ;
 		if(!document.getElementsByClassName("bL").length){
-			document.getElementById("typingConsole").innerHTML = output.slice(0,index+4)+"<span class='bL "+color+"'>"+output.slice(index+4)+"</span>";
+			myConsole.innerHTML = output.slice(0,index+4)+"<span class='bL "+color+"'>"+output.slice(index+4)+"</span>";
 		}else{
 			document.getElementsByClassName("bL")[0].className = 'bL '+color;
 		}
@@ -220,20 +224,22 @@ function suppressdefault(e)
 }
 
 function removeCaret(){
-	document.getElementById("typingConsole").innerHTML = document.getElementById("typingConsole").innerHTML.slice(0, -1); ;
+	myConsole.innerHTML = myConsole.innerHTML.slice(0, -1); ;
 }
 function addCaret(){
-	document.getElementById("typingConsole").innerHTML += "&#9632;";
+	myConsole.innerHTML += "&#9632;";
 }
 
 function Evaluate(e){
 	if(!e.shiftKey  && globalLine != null && !globalLine.length){
-		document.getElementById("typingConsole").innerHTML += "<br>";
+		myConsole.innerHTML += "<br>";
 	}else {
-		var output =document.getElementById("typingConsole").innerHTML;
+		var output = myConsole.innerHTML;
 		var lastLineIndex = output.lastIndexOf("<br>");
 		lastLineIndex += 3*(lastLineIndex >>31);
-			if(globalLine != null && !globalLine.length){
+			if((lastLineIndex+3) == (output.length-1)){
+			Erase();
+			}else if(globalLine != null && !globalLine.length){
 				funDictionary( lastLineIndex,output.substring(lastLineIndex+4)); 
 			}else{
 				funDictionary(lastLineIndex,globalLine); 
@@ -247,18 +253,18 @@ function Erase(){
 	else if(globalLine.length && globalLine == "help"){display_help();addCaret();}
 	else if(globalLine.length){eraseLastLine();addCaret(); globalLine=new String;}
 	else{
-	var output = document.getElementById("typingConsole").innerHTML;
+	var output = myConsole.innerHTML;
 	var Caret = (output.slice(-1).charCodeAt(0) == 9632 ? -1 : 0);
 	
-	if (document.getElementById("typingConsole").innerText.slice(Caret-1).charCodeAt(0) == 10) 
-	{document.getElementById("typingConsole").innerHTML = output.slice(0, -4 + Caret)+(Caret? "&#9632;":"");} //+4 avoids <br> tag
-	else if ([38,60,62,160].includes(document.getElementById("typingConsole").innerText.slice(Caret-1).charCodeAt(0))) 
+	if (myConsole.innerText.slice(Caret-1).charCodeAt(0) == 10) 
+	{myConsole.innerHTML = output.slice(0, -4 + Caret)+(Caret? "&#9632;":"");} //+4 avoids <br> tag
+	else if ([38,60,62,160].includes(myConsole.innerText.slice(Caret-1).charCodeAt(0))) 
 	{
 		var match = output.match(/&[a-z\d]+;/g);
-		if(match.length) document.getElementById("typingConsole").innerHTML = output.substring(0, output.lastIndexOf(match[match.length-1]))+(Caret? "&#9632;":"");
+		if(match.length) myConsole.innerHTML = output.substring(0, output.lastIndexOf(match[match.length-1]))+(Caret? "&#9632;":"");
 	}
 	else{
-		document.getElementById("typingConsole").innerHTML = output.slice(0, Caret-1)+(Caret? "&#9632;":"");
+		myConsole.innerHTML = output.slice(0, Caret-1)+(Caret? "&#9632;":"");
 	}
 	}
 }
@@ -274,7 +280,7 @@ function keypress(e)
 			/*case 32:showHTML("&nbsp;");
 			break;*/
 			
-			default:showChar(keyval(e.keyCode));
+			default: if(e.keyCode != 118 && e.keyCode !=  86) showChar(keyval(e.keyCode)); else if(!e.ctrlKey) showChar(keyval(e.keyCode));
 			break;
    }
    addCaret();
@@ -292,3 +298,21 @@ function keydown(e)
 			
    }
 }
+
+/* paste event */
+
+function handlePaste (e) {
+		var clipboardData, pastedData;
+
+		e.stopPropagation();
+    e.preventDefault();
+
+    clipboardData = e.clipboardData || window.clipboardData;
+    pastedData = clipboardData.getData('Text');
+    
+    removeCaret();
+	showChar(pastedData);
+	addCaret();
+}
+
+myConsole.Element.addEventListener('paste', handlePaste);
