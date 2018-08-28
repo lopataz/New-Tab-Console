@@ -1,16 +1,151 @@
-class Console { 
-constructor(){this.console = document.getElementById("typingConsole"); } 
+export class Console { 
+constructor(data){
+	this.console = document.getElementById("typingConsole");
+	this.caret = -1;
+	this.initHiddenChar();
+	if(data!== undefined) this.innerHTML = data;
+} 
 get Element(){ return this.console;}
 get innerHTML(){ return this.console.innerHTML; }
 get innerText(){ return this.console.innerText; }
+get caretPos() {return this.caret;}
+get hiddenCharVal(){return this.hiddenChar;}
+
+get carsetIndexBr(){
+	var index ={"debut" : -1 , "fin" :-1, "data" : ""};
+	var arrConsole = this.innerHTML.split('■');
+	if(arrConsole && arrConsole.length){console.log(arrConsole);
+		index.debut = arrConsole[0].lastIndexOf("<br>");
+		if(index.debut== -1 ) index.debut=0;
+		index.fin = arrConsole[0].length;
+		index.data = arrConsole[0].substring(index.debut+ 4);
+	}
+	return index;
+}
 
 set ["innerHTML"](data) { this.console.innerHTML = data; }
 set ["innerText"](data) { this.console.innerText = data; }
 
+set ["caretPos"](position) { this.caret = position; }
+set ["hiddenCharVal"](hiddenChar) { this.hiddenChar = hiddenChar; }
+
+	
+
+	showChar(str){
+		if(globalLine === null){ 
+			this.eraseLine();
+			globalLine=new String;
+		}else if(!globalLine.length){ 
+			//var content = document.createTextNode(str);
+			var arrConsole = this.innerText.split('■');
+			if (this.insert){
+				this.hiddenChar = arrConsole[1].slice(0,1);
+				this.innerText=arrConsole[0]+str+'■'+arrConsole[1].slice(1);
+			}else{
+				this.innerText=arrConsole[0]+str+'■'+arrConsole[1];
+				//this.hiddenChar = '';
+			}
+		}
+	}
+	
+	Erase(){
+		if(globalLine === null ){ myConsole.eraseLine();}
+			else if(globalLine.length && globalLine == "help"){display_help();}
+			else if(globalLine.length){myConsole.eraseLine(); globalLine=new String;}
+				else{
+					var arrConsole = this.innerText.split('■');
+					this.innerText = arrConsole[0].slice(0,-1)+'■'+arrConsole[1];
+					
+				}
+	}
+
+	showHTML(str)
+	{
+		this.console.innerHTML+= str;
+	}
+	
+	Evaluate(e){//console.log("g:"+globalLine);
+	
+		if(!e.shiftKey  && globalLine != null && !globalLine.length){
+			this.showChar('\n');
+		}else {
+			var output = this.innerHTML.split('■'); 
+			if (output){
+			var lineIndex = this.carsetIndexBr;
+			lineIndex["debut"] += 3*(lineIndex["debut"] >>31); 
+				if((lineIndex["debut"]+3) == lineIndex["fin"]-1 && globalLine != null && !globalLine.length){//alert("0");
+					this.Erase();
+				}else if(globalLine != null && !globalLine.length){ //alert("1");
+					funDictionary( lineIndex,lineIndex["data"]); 
+				}else{//alert("2");
+					funDictionary(lineIndex,globalLine); 
+				}
+			}
+		}
+	
+	}
+
+	
+	eraseLine(br_included){ 
+		var lineIndex = this.carsetIndexBr;//console.log(lineIndex);
+		this.innerHTML = this.innerHTML.substring(0,lineIndex["debut"]+(br_included?0:4))+this.innerHTML.substring(lineIndex["fin"]);
+	}
+
+	
+
+	backgroundLine(color, index1, index2){
+			var output=this.console.innerHTML ;
+			if(index1 === undefined) {var index=carsetIndexBr; var index1= index["debut"]; var index2 = index["fin"];}
+			else if(index2 === undefined){var index2 = this.innerHTML.substring(index1).firstIndexOf("<br>")-1;  }
+			
+			console.log(index1 + " "+index2);
+			
+			if(!document.getElementsByClassName("bL").length){
+				this.console.innerHTML = output.slice(0,index1+(!index1?0:4))+"<span class='bL "+color+"'>"+output.slice(index1+(!index1?0:4),index2)+"</span>"+output.slice(index2);
+			}else{
+				document.getElementsByClassName("bL")[0].className = 'bL '+color;
+			}
+	}
+	//caret movements
+		moveLeft(){
+			var arrConsole = this.innerText.split('■');
+			if(arrConsole && arrConsole[0].length){
+			var isLB = Number(arrConsole[0].slice(-1) == "\n");
+			var isdoubleLB = (isLB && arrConsole[0].slice(-2, -1) == "\n");
+					if(this.hiddenChar == "\n" && isLB) arrConsole[1] = arrConsole[1].slice(1);//console.log(arrConsole[0]);
+					this.innerText = arrConsole[0].slice(0,-1-isLB) + (isLB && !isdoubleLB?'■\n':(isdoubleLB? '\n■\n':'■'))+ (this.hiddenChar!= '\n'?this.hiddenChar:(isLB?'\n':'')) + arrConsole[1];
+					this.hiddenChar = arrConsole[0].slice(-1-isLB,(isLB?-1:undefined));
+				if(arrConsole[0].length<=0) this.hiddenChar = '\0'; 
+				//console.log(this.hiddenChar);
+			}
+		}
+		
+		moveRight(){
+			var arrConsole = this.innerText.split('■');
+			var isLB = Number(arrConsole[1].slice(0,1) == "\n");
+			var isdoubleLB = Number(arrConsole[1].slice(0, 2) == "\n\n");
+			var isHaLB = this.hiddenChar == "\n";
+			if(this.hiddenChar!='\0'){
+				this.innerText = arrConsole[0] +this.hiddenChar+(!isHaLB && isLB?(isLB && !isdoubleLB?'■\n':'■'):'■')+ arrConsole[1].slice(1-(!isHaLB && isLB)+isLB-isdoubleLB) ;
+				 this.hiddenChar =arrConsole[1].slice(-(!isHaLB && isLB)+isLB,-(!isHaLB && isLB)+1+isLB);
+			}else{ 
+				this.innerText =(isLB?'\n':'')+'■'+arrConsole[1].slice(1-isdoubleLB+isLB);
+				this.hiddenChar =arrConsole[1].slice(0+isLB,1+isLB);
+			}				
+		}
+		
+		initHiddenChar(i_char){
+		if (i_char !== undefined){ this.hiddenChar = i_char;}else{
+			var arrConsole = this.innerText.split('■');
+			this.hiddenChar = (arrConsole && arrConsole[1] && arrConsole[1].slice(0,1) != "\n" ?arrConsole[0].slice(-1):'\n');
+			if(arrConsole[1] && this.hiddenChar != '\n') this.innerText = arrConsole[0].slice(0,-1) +'■' +arrConsole[1];
+		}
+		}
+
 };
 
 // globals //
-let myConsole = new Console();
+export let myConsole = new Console();
 var OPTIONS = new Array;
 var globalLine = new String(""); //determines if the last line has background-color
 	
@@ -40,13 +175,13 @@ setTimeout(function(){
 	
 },25);
 
-// //import * as computeDataModule from './computeDataModule.js';
+
 import colorFromData from './computeDataModule.js';
 import {colorSave} from './storage.js';
 
 /* Console functions*/
-var save_output = function(index) {
-	  var output = myConsole.innerHTML.substring(0,index);
+var save_output = function(index1,index2) {
+	  var output = myConsole.innerHTML.substring(0,index1)+(myConsole.hiddenChar!='\n'?myConsole.hiddenChar:'')+myConsole.innerHTML.substring(index2+1);
 	  chrome.storage.local.set({consoleSave: output}, function(){
 			colorSave.setData(output);
 			var cool = colorSave.color(OPTIONS.colorSatu); 
@@ -68,8 +203,8 @@ var erase_save = function() {
 var restore_save = function() {
 	  chrome.storage.local.get(['consoleSave'], function(result) {
 		 colorSave.setData(result.consoleSave? result.consoleSave: "");
-		 myConsole.innerHTML = colorSave.output;
-		 addCaret();
+		 myConsole = new Console(colorSave.output);
+		 //addCaret();
 			var cool = colorSave.color(OPTIONS.colorSatu); 
 			if(OPTIONS.Dynamic) document.body.style.backgroundColor = cool;
 			if(OPTIONS.soundVolume) colorSave.sound(OPTIONS.soundVolume);
@@ -78,7 +213,7 @@ var restore_save = function() {
 	};
 	
 var clear_output = function() {
-		myConsole.innerHTML = "";
+		myConsole.innerHTML = "■";
 		return true;
 	};
 	
@@ -98,7 +233,7 @@ var display_help = function(arg){
 	
 	if(globalLine== "help" && !arg.length){
 		globalLine="help 1";
-		eraseLastLine();
+		myConsole.eraseLine();
 		var help_text ="<br>###Help###<br><br>Available commands:"+
 		"<br>save (Saves current display)"+
 		"<br>erase (Erases last save)"+
@@ -127,38 +262,9 @@ function clearToZANi(){
 
 
 /* Console intern functions*/
-function showChar(str){
-	if(globalLine === null){ 
-		eraseLastLine();
-		globalLine=new String;
-	}else if(!globalLine.length){ 
-		var Div = myConsole.Element;
-		var content = document.createTextNode(str);
-		Div.appendChild(content);
-	}
-}
-
-function showHTML(str)
-{
-	myConsole.innerHTML+= str;
-}
 
 
-function eraseLastLine(br_included){
-	if(index === undefined) var index=myConsole.innerHTML.lastIndexOf("<br>");
-	myConsole.innerHTML = myConsole.innerHTML.substring(0,index+(br_included?0:4));
-}
-
-	function backgroundLine(color, index){
-		var output=myConsole.innerHTML ;
-		if(!document.getElementsByClassName("bL").length){
-			myConsole.innerHTML = output.slice(0,index+4)+"<span class='bL "+color+"'>"+output.slice(index+4)+"</span>";
-		}else{
-			document.getElementsByClassName("bL")[0].className = 'bL '+color;
-		}
-	}
-
-function funDictionary(indexLastLine,cmd){
+function funDictionary(indexLine,cmd){//console.log(globalLine);console.log(cmd);
 	var cmd_line=cmd;
 	var args = (cmd=== null ? [] :(cmd.match(/\s[a-zA-Z\d\-\.:\/]+/g) || [])); 
 	if (args && args.length){
@@ -169,22 +275,22 @@ function funDictionary(indexLastLine,cmd){
 	
 	if( ! ["save","erase","restore","clear","visit","help"].includes(cmd) ){
 		if(globalLine != null && !globalLine.length){
-			backgroundLine("redSpan",indexLastLine);
+			myConsole.backgroundLine("redSpan",indexLine.debut,indexLine.fin);
 			globalLine=null;
 		}else{
-			eraseLastLine();
+			myConsole.eraseLine();
 			globalLine=new String;
 		}
 	}else {
 		if(!globalLine.length){
-			backgroundLine("greenSpan",indexLastLine);
+			myConsole.backgroundLine("greenSpan",indexLine.debut,indexLine.fin);
 			globalLine=(args && args.length>0?cmd_line:cmd);
 		}else{
 			var return_func;
 			var need_eraseLL = false;
 			var need_globalReset = true;
 			switch(cmd){
-			case "save":return_func = save_output(indexLastLine);need_eraseLL=true; 
+			case "save":return_func = save_output(indexLine.debut, indexLine.fin);need_eraseLL=true; 
 			break;
 			case "erase":return_func = erase_save();need_eraseLL=true; 
 			break;
@@ -202,14 +308,14 @@ function funDictionary(indexLastLine,cmd){
 			}
 			
 			if(need_eraseLL){
-			eraseLastLine(true);
+			myConsole.eraseLine(true);
 			}
 			if(need_globalReset){
 				globalLine=new String;
 			}
 			
 			if(!return_func &&  !need_eraseLL ){ 
-				backgroundLine("orangeSpan",indexLastLine);
+				myConsole.backgroundLine("orangeSpan",indexLine.debut,indexLine.fin);
 				globalLine=null;//!\ changes global var, regardless of function pref
 			}
 			
@@ -230,60 +336,23 @@ function addCaret(){
 	myConsole.innerHTML += "&#9632;";
 }
 
-function Evaluate(e){
-	if(!e.shiftKey  && globalLine != null && !globalLine.length){
-		myConsole.innerHTML += "<br>";
-	}else {
-		var output = myConsole.innerHTML;
-		var lastLineIndex = output.lastIndexOf("<br>");
-		lastLineIndex += 3*(lastLineIndex >>31);
-			if((lastLineIndex+3) == (output.length-1)){
-			Erase();
-			}else if(globalLine != null && !globalLine.length){
-				funDictionary( lastLineIndex,output.substring(lastLineIndex+4)); 
-			}else{
-				funDictionary(lastLineIndex,globalLine); 
-			}
-	}
-	
-}
-	
-function Erase(){
-	if(globalLine === null ){ eraseLastLine();addCaret();}
-	else if(globalLine.length && globalLine == "help"){display_help();addCaret();}
-	else if(globalLine.length){eraseLastLine();addCaret(); globalLine=new String;}
-	else{
-	var output = myConsole.innerHTML;
-	var Caret = (output.slice(-1).charCodeAt(0) == 9632 ? -1 : 0);
-	
-	if (myConsole.innerText.slice(Caret-1).charCodeAt(0) == 10) 
-	{myConsole.innerHTML = output.slice(0, -4 + Caret)+(Caret? "&#9632;":"");} //+4 avoids <br> tag
-	else if ([38,60,62,160].includes(myConsole.innerText.slice(Caret-1).charCodeAt(0))) 
-	{
-		var match = output.match(/&[a-z\d]+;/g);
-		if(match.length) myConsole.innerHTML = output.substring(0, output.lastIndexOf(match[match.length-1]))+(Caret? "&#9632;":"");
-	}
-	else{
-		myConsole.innerHTML = output.slice(0, Caret-1)+(Caret? "&#9632;":"");
-	}
-	}
-}
+
 	
 	/* KEYS EVENT CASES */
 function keypress(e)
 {
    if (!e) e= event;
-   removeCaret();
+  //removeCaret();
    switch (e.which) {
-            case 13:Evaluate(e);
+            case 13:myConsole.Evaluate(e);
 			break;
 			/*case 32:showHTML("&nbsp;");
 			break;*/
 			
-			default: if(e.keyCode != 118 && e.keyCode !=  86) showChar(keyval(e.keyCode)); else if(!e.ctrlKey) showChar(keyval(e.keyCode));
+			default: if(e.keyCode != 118 && e.keyCode !=  86) myConsole.showChar(keyval(e.keyCode)); else if(!e.ctrlKey) myConsole.showChar(keyval(e.keyCode));
 			break;
    }
-   addCaret();
+   //addCaret();
 }
 
 function keydown(e)
@@ -291,7 +360,11 @@ function keydown(e)
    if (!e) e= event;
    switch (e.which) {
 			
-			case 8:Erase();
+			case 8:myConsole.Erase();
+			break;
+			case 37:myConsole.moveLeft();
+			break;
+			case 39:myConsole.moveRight();
 			break;
 			default:
 			break;
@@ -311,8 +384,8 @@ function handlePaste (e) {
     pastedData = clipboardData.getData('Text');
     
     removeCaret();
-	showChar(pastedData);
-	addCaret();
+	myConsole.showChar(pastedData);
+	//addCaret();
 }
 
 myConsole.Element.addEventListener('paste', handlePaste);

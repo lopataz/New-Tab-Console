@@ -2,7 +2,7 @@ var OPT_Apparent= new Boolean;
 var OPTIONS = new Array;
 const dynamicDefault ="#677999";
 
-
+import {Console, myConsole} from './Console.js';
 import colorFromData from './computeDataModule.js';
 export let colorSave = new colorFromData('');
 
@@ -67,5 +67,7 @@ function AddContent(consoleSave){
 	if(OPTIONS.Dynamic) document.body.style.backgroundColor = cool;
 	if(OPTIONS.soundVolume) colorSave.sound(parseFloat(OPTIONS.soundVolume));
 	
-	document.getElementById("typingConsole").innerHTML = (consoleSave && consoleSave.length? consoleSave : "" )+"&#9632;";
+	myConsole.innerHTML= (consoleSave && consoleSave.length? consoleSave : '■' );
+	myConsole.initHiddenChar();
+	
 }
