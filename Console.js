@@ -4,6 +4,7 @@ constructor(data){
 	this.caret = -1;
 	this.initHiddenChar();
 	if(data!== undefined) this.innerHTML = data;
+	if(this.innerHTML.match(/\u25A0/) == null) this.innerHTML += "&#x25A0;"
 } 
 get Element(){ return this.console;}
 get innerHTML(){ return this.console.innerHTML; }
@@ -14,11 +15,12 @@ get hiddenCharVal(){return this.hiddenChar;}
 get carsetIndexBr(){
 	var index ={"debut" : -1 , "fin" :-1, "data" : ""};
 	var arrConsole = this.innerHTML.split('■');
-	if(arrConsole && arrConsole.length){console.log(arrConsole);
+	if(arrConsole && arrConsole.length){//console.log(arrConsole);
 		index.debut = arrConsole[0].lastIndexOf("<br>");
 		if(index.debut== -1 ) index.debut=0;
+		
 		index.fin = arrConsole[0].length;
-		index.data = arrConsole[0].substring(index.debut+ 4);
+		index.data = arrConsole[0].substring(index.debut+4*(index.debut > 0 ));
 	}
 	return index;
 }
@@ -64,16 +66,16 @@ set ["hiddenCharVal"](hiddenChar) { this.hiddenChar = hiddenChar; }
 		this.console.innerHTML+= str;
 	}
 	
-	Evaluate(e){//console.log("g:"+globalLine);
+	Evaluate(e){////console.log("g:"+globalLine);
 	
 		if(!e.shiftKey  && globalLine != null && !globalLine.length){
 			this.showChar('\n');
 		}else {
 			var output = this.innerHTML.split('■'); 
 			if (output){
-			var lineIndex = this.carsetIndexBr;
-			lineIndex["debut"] += 3*(lineIndex["debut"] >>31); 
-				if((lineIndex["debut"]+3) == lineIndex["fin"]-1 && globalLine != null && !globalLine.length){//alert("0");
+			var lineIndex = this.carsetIndexBr; //console.log(">>>"+lineIndex.debut+ " " +lineIndex.fin +" " + lineIndex.data);
+			
+				if((lineIndex["debut"]+4*(lineIndex["debut"]>0)) == lineIndex["fin"] && globalLine != null && !globalLine.length){//alert("0");
 					this.Erase();
 				}else if(globalLine != null && !globalLine.length){ //alert("1");
 					funDictionary( lineIndex,lineIndex["data"]); 
@@ -86,9 +88,9 @@ set ["hiddenCharVal"](hiddenChar) { this.hiddenChar = hiddenChar; }
 	}
 
 	
-	eraseLine(br_included){ 
-		var lineIndex = this.carsetIndexBr;//console.log(lineIndex);
-		this.innerHTML = this.innerHTML.substring(0,lineIndex["debut"]+(br_included?0:4))+this.innerHTML.substring(lineIndex["fin"]);
+	eraseLine(br_included,debut,fin){ 
+		var lineIndex = this.carsetIndexBr;////console.log(lineIndex);
+		this.innerHTML = this.innerHTML.substring(0,lineIndex["debut"]+(br_included?0:4-4*(lineIndex.debut==0)))+this.innerHTML.substring(lineIndex["fin"]);
 	}
 
 	
@@ -98,10 +100,10 @@ set ["hiddenCharVal"](hiddenChar) { this.hiddenChar = hiddenChar; }
 			if(index1 === undefined) {var index=carsetIndexBr; var index1= index["debut"]; var index2 = index["fin"];}
 			else if(index2 === undefined){var index2 = this.innerHTML.substring(index1).firstIndexOf("<br>")-1;  }
 			
-			console.log(index1 + " "+index2);
+			//console.log(index1 + " "+index2);
 			
-			if(!document.getElementsByClassName("bL").length){
-				this.console.innerHTML = output.slice(0,index1+(!index1?0:4))+"<span class='bL "+color+"'>"+output.slice(index1+(!index1?0:4),index2)+"</span>"+output.slice(index2);
+			if(!document.getElementsByClassName("bL").length){ //console.log(typeof index1+" "+index1);
+				this.console.innerHTML = output.slice(0,index1+4*(index1 > 0 ))+"<span class='bL "+color+"'>"+output.slice(index1+4*(index1 > 0 ),index2)+"</span>"+output.slice(index2);
 			}else{
 				document.getElementsByClassName("bL")[0].className = 'bL '+color;
 			}
@@ -112,11 +114,11 @@ set ["hiddenCharVal"](hiddenChar) { this.hiddenChar = hiddenChar; }
 			if(arrConsole && arrConsole[0].length){
 			var isLB = Number(arrConsole[0].slice(-1) == "\n");
 			var isdoubleLB = (isLB && arrConsole[0].slice(-2, -1) == "\n");
-					if(this.hiddenChar == "\n" && isLB) arrConsole[1] = arrConsole[1].slice(1);//console.log(arrConsole[0]);
+					if(this.hiddenChar == "\n" && isLB) arrConsole[1] = arrConsole[1].slice(1);////console.log(arrConsole[0]);
 					this.innerText = arrConsole[0].slice(0,-1-isLB) + (isLB && !isdoubleLB?'■\n':(isdoubleLB? '\n■\n':'■'))+ (this.hiddenChar!= '\n'?this.hiddenChar:(isLB?'\n':'')) + arrConsole[1];
 					this.hiddenChar = arrConsole[0].slice(-1-isLB,(isLB?-1:undefined));
 				if(arrConsole[0].length<=0) this.hiddenChar = '\0'; 
-				//console.log(this.hiddenChar);
+				////console.log(this.hiddenChar);
 			}
 		}
 		
@@ -181,7 +183,8 @@ import {colorSave} from './storage.js';
 
 /* Console functions*/
 var save_output = function(index1,index2) {
-	  var output = myConsole.innerHTML.substring(0,index1)+(myConsole.hiddenChar!='\n'?myConsole.hiddenChar:'')+myConsole.innerHTML.substring(index2+1);
+	  var output = myConsole.innerHTML.substring(0,index1)+(myConsole.hiddenChar!='\n'?myConsole.hiddenChar:'')+myConsole.innerHTML.substring(index2);
+	  //console.log(output);
 	  chrome.storage.local.set({consoleSave: output}, function(){
 			colorSave.setData(output);
 			var cool = colorSave.color(OPTIONS.colorSatu); 
@@ -218,7 +221,7 @@ var clear_output = function() {
 	};
 	
 	
-var visit_page = function(page){ console.log(page[0]);
+var visit_page = function(page){ //console.log(page[0]);
 	if (page && page != null){
 		var url = RegExp('^(https?|ftp)?(?::\/\/)?([a-zA-Z\d\\-\.\/]+)').exec(page[0]);
 		if(url !=null){
@@ -264,7 +267,7 @@ function clearToZANi(){
 /* Console intern functions*/
 
 
-function funDictionary(indexLine,cmd){//console.log(globalLine);console.log(cmd);
+function funDictionary(indexLine,cmd){////console.log(globalLine);//console.log(cmd);
 	var cmd_line=cmd;
 	var args = (cmd=== null ? [] :(cmd.match(/\s[a-zA-Z\d\-\.:\/]+/g) || [])); 
 	if (args && args.length){
@@ -290,7 +293,7 @@ function funDictionary(indexLine,cmd){//console.log(globalLine);console.log(cmd)
 			var need_eraseLL = false;
 			var need_globalReset = true;
 			switch(cmd){
-			case "save":return_func = save_output(indexLine.debut, indexLine.fin);need_eraseLL=true; 
+			case "save":return_func = save_output(indexLine.debut, indexLine.fin);myConsole.eraseLine(false);
 			break;
 			case "erase":return_func = erase_save();need_eraseLL=true; 
 			break;

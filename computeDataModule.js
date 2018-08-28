@@ -28,7 +28,7 @@ color(saturation){
 
 	if(this.data == "") return "#677999"+Number(saturation).toString(16); 
 		
-	//console.clear();
+	// console.clear();
 var F = 442;
 var n = 888;
 for (var i = 0; i < this.data.length; i++) {
