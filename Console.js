@@ -4,7 +4,7 @@ constructor(data){
 	this.caret = -1;
 	this.initHiddenChar();
 	if(data!== undefined) this.innerHTML = data;
-	if(this.innerHTML.match(/\u25A0/) == null) this.innerHTML += "&#x25A0;"
+	//if(this.innerHTML.match(/\u25A0/) == null) this.innerHTML += "&#x25A0;"
 } 
 get Element(){ return this.console;}
 get innerHTML(){ return this.console.innerHTML; }
@@ -13,15 +13,31 @@ get caretPos() {return this.caret;}
 get hiddenCharVal(){return this.hiddenChar;}
 
 get carsetIndexBr(){
-	var index ={"debut" : -1 , "fin" :-1, "data" : ""};
+	var index ={"start" : -1 , "end" :-1, "data" : ""};
+	
 	var arrConsole = this.innerHTML.split('■');
 	if(arrConsole && arrConsole.length){//console.log(arrConsole);
-		index.debut = arrConsole[0].lastIndexOf("<br>");
-		if(index.debut== -1 ) index.debut=0;
+		index.start = arrConsole[0].lastIndexOf("<br>");
+		if(index.start== -1 ) index.start=0;
 		
-		index.fin = arrConsole[0].length;
-		index.data = arrConsole[0].substring(index.debut+4*(index.debut > 0 ));
+		index.end = arrConsole[0].length;
+		index.data = arrConsole[0].substring(index.start+4*(index.start > 0 ));
 	}
+
+	return index;
+}
+
+get carsetIndexBrText(){
+	var index ={"start" : -1 , "end" :-1, "data" : ""};
+	
+	var arrConsole = this.innerText.split('■');
+		if(arrConsole && arrConsole.length){
+			index.start = arrConsole[0].lastIndexOf("\n");
+			if(index.start== -1 ) index.start=0;
+			index.end = arrConsole[0].length;
+			index.data = arrConsole[0].substring(index.start+(index.start > 0 ));
+		}
+
 	return index;
 }
 
@@ -60,6 +76,18 @@ set ["hiddenCharVal"](hiddenChar) { this.hiddenChar = hiddenChar; }
 					
 				}
 	}
+	
+	Delete(){
+		if(globalLine === null ){ myConsole.eraseLine();}
+			else if(globalLine.length && globalLine == "help"){display_help();}
+			else if(globalLine.length){myConsole.eraseLine(); globalLine=new String;}
+				else{
+					var arrConsole = this.innerText.split('■');
+					this.hiddenChar = arrConsole[1].slice(0,+(arrConsole[1].length>0)); 
+					this.innerText = arrConsole[0]+'■'+arrConsole[1].slice(+(arrConsole[1].length>0)-(this.hiddenChar=="\n")); 
+					
+				}
+	}
 
 	showHTML(str)
 	{
@@ -73,9 +101,9 @@ set ["hiddenCharVal"](hiddenChar) { this.hiddenChar = hiddenChar; }
 		}else {
 			var output = this.innerHTML.split('■'); 
 			if (output){
-			var lineIndex = this.carsetIndexBr; //console.log(">>>"+lineIndex.debut+ " " +lineIndex.fin +" " + lineIndex.data);
+			var lineIndex = this.carsetIndexBr; //console.log(">>>"+lineIndex.start+ " " +lineIndex.end +" " + lineIndex.data);
 			
-				if((lineIndex["debut"]+4*(lineIndex["debut"]>0)) == lineIndex["fin"] && globalLine != null && !globalLine.length){//alert("0");
+				if((lineIndex["start"]+4*(lineIndex["start"]>0)) == lineIndex["end"] && globalLine != null && !globalLine.length){//alert("0");
 					this.Erase();
 				}else if(globalLine != null && !globalLine.length){ //alert("1");
 					funDictionary( lineIndex,lineIndex["data"]); 
@@ -88,16 +116,16 @@ set ["hiddenCharVal"](hiddenChar) { this.hiddenChar = hiddenChar; }
 	}
 
 	
-	eraseLine(br_included,debut,fin){ 
+	eraseLine(br_included,start,end){ 
 		var lineIndex = this.carsetIndexBr;////console.log(lineIndex);
-		this.innerHTML = this.innerHTML.substring(0,lineIndex["debut"]+(br_included?0:4-4*(lineIndex.debut==0)))+this.innerHTML.substring(lineIndex["fin"]);
+		this.innerHTML = this.innerHTML.substring(0,lineIndex["start"]+(br_included?0:4-4*(lineIndex.start==0)))+this.innerHTML.substring(lineIndex["end"]);
 	}
 
 	
 
 	backgroundLine(color, index1, index2){
 			var output=this.console.innerHTML ;
-			if(index1 === undefined) {var index=carsetIndexBr; var index1= index["debut"]; var index2 = index["fin"];}
+			if(index1 === undefined) {var index=carsetIndexBr; var index1= index["start"]; var index2 = index["end"];}
 			else if(index2 === undefined){var index2 = this.innerHTML.substring(index1).firstIndexOf("<br>")-1;  }
 			
 			//console.log(index1 + " "+index2);
@@ -135,6 +163,45 @@ set ["hiddenCharVal"](hiddenChar) { this.hiddenChar = hiddenChar; }
 				this.hiddenChar =arrConsole[1].slice(0+isLB,1+isLB);
 			}				
 		}
+		
+		
+		moveUp(){
+			var IndexBr = this.carsetIndexBrText;
+			var ol_hiddenChar= this.hiddenChar;
+			var isLB = Number(this.innerText.slice(IndexBr.start-1,IndexBr.start) == "\n");
+						
+			if (IndexBr.start>0 ){console.log("1"+ol_hiddenChar+"2");console.log((isLB && !['','\n'].includes(ol_hiddenChar))+":"+isLB);
+				this.hiddenChar =  (isLB? '':this.innerText.slice(IndexBr.start-1,IndexBr.start));
+				 this.innerText = this.innerText.slice(0,IndexBr.start-1)+(isLB ?'\n■':'■')+this.innerText.slice(IndexBr.start,IndexBr.end)+ol_hiddenChar+this.innerText.slice(IndexBr.end+1+(['\n'].includes(ol_hiddenChar)));
+			}else if(IndexBr.start == 0){
+				if (IndexBr.end>0 ) this.hiddenChar = this.innerText.slice(0,1);
+				this.innerText = '■'+this.innerText.slice(+(IndexBr.end>0),IndexBr.end)+(IndexBr.end>0 ?ol_hiddenChar:'')+this.innerText.slice(IndexBr.end+1);
+			}
+			
+			// if(ol_hiddenChar == '\n' && this.innerHTML.slice(IndexBr.start-4, IndexBr.start)== "<br>") this.hiddenChar = '\n';
+		}
+		
+		moveDown(){
+			var arrConsole = this.innerHTML.split('■');
+			var indexBR = arrConsole[1].indexOf("<br>");
+			
+			if(indexBR > 0){
+				this.innerHTML = arrConsole[0]+this.hiddenChar+arrConsole[1].slice(0,indexBR)+'■'+arrConsole[1].slice(indexBR);
+				this.hiddenChar = '';
+				
+			}else if (indexBR == 0){
+				var nextBR = arrConsole[1].slice(4).indexOf("<br>")+4;
+				if(nextBR >3){
+					this.innerHTML = arrConsole[0]+this.hiddenChar+arrConsole[1].slice(0,nextBR)+'■'+arrConsole[1].slice(nextBR);
+				}else{
+					this.innerHTML = arrConsole[0]+this.hiddenChar+arrConsole[1]+'■';
+				}
+				this.hiddenChar = '';
+			}
+			
+			
+		}
+		
 		
 		initHiddenChar(i_char){
 		if (i_char !== undefined){ this.hiddenChar = i_char;}else{
@@ -267,7 +334,7 @@ function clearToZANi(){
 /* Console intern functions*/
 
 
-function funDictionary(indexLine,cmd){////console.log(globalLine);//console.log(cmd);
+function funDictionary(indexLine,cmd){////function dictionnary, to process available commands
 	var cmd_line=cmd;
 	var args = (cmd=== null ? [] :(cmd.match(/\s[a-zA-Z\d\-\.:\/]+/g) || [])); 
 	if (args && args.length){
@@ -278,7 +345,7 @@ function funDictionary(indexLine,cmd){////console.log(globalLine);//console.log(
 	
 	if( ! ["save","erase","restore","clear","visit","help"].includes(cmd) ){
 		if(globalLine != null && !globalLine.length){
-			myConsole.backgroundLine("redSpan",indexLine.debut,indexLine.fin);
+			myConsole.backgroundLine("redSpan",indexLine.start,indexLine.end);
 			globalLine=null;
 		}else{
 			myConsole.eraseLine();
@@ -286,14 +353,14 @@ function funDictionary(indexLine,cmd){////console.log(globalLine);//console.log(
 		}
 	}else {
 		if(!globalLine.length){
-			myConsole.backgroundLine("greenSpan",indexLine.debut,indexLine.fin);
+			myConsole.backgroundLine("greenSpan",indexLine.start,indexLine.end);
 			globalLine=(args && args.length>0?cmd_line:cmd);
 		}else{
 			var return_func;
 			var need_eraseLL = false;
 			var need_globalReset = true;
 			switch(cmd){
-			case "save":return_func = save_output(indexLine.debut, indexLine.fin);myConsole.eraseLine(false);
+			case "save":return_func = save_output(indexLine.start, indexLine.end);myConsole.eraseLine(false);
 			break;
 			case "erase":return_func = erase_save();need_eraseLL=true; 
 			break;
@@ -318,7 +385,7 @@ function funDictionary(indexLine,cmd){////console.log(globalLine);//console.log(
 			}
 			
 			if(!return_func &&  !need_eraseLL ){ 
-				myConsole.backgroundLine("orangeSpan",indexLine.debut,indexLine.fin);
+				myConsole.backgroundLine("orangeSpan",indexLine.start,indexLine.end);
 				globalLine=null;//!\ changes global var, regardless of function pref
 			}
 			
@@ -347,12 +414,12 @@ function keypress(e)
    if (!e) e= event;
   //removeCaret();
    switch (e.which) {
-            case 13:myConsole.Evaluate(e);
+            case 13:myConsole.Evaluate(e); //Enter
 			break;
-			/*case 32:showHTML("&nbsp;");
+			/*case 32:showHTML("&nbsp;"); // space
 			break;*/
 			
-			default: if(e.keyCode != 118 && e.keyCode !=  86) myConsole.showChar(keyval(e.keyCode)); else if(!e.ctrlKey) myConsole.showChar(keyval(e.keyCode));
+			default: if(e.keyCode != 118 && e.keyCode !=  86) myConsole.showChar(keyval(e.keyCode)); else if(!e.ctrlKey) myConsole.showChar(keyval(e.keyCode)); //V ctrl+ V
 			break;
    }
    //addCaret();
@@ -368,6 +435,12 @@ function keydown(e)
 			case 37:myConsole.moveLeft();
 			break;
 			case 39:myConsole.moveRight();
+			break;
+			case 38:myConsole.moveUp();
+			break;
+			case 40:myConsole.moveDown();
+			break;
+			case 46:myConsole.Delete();
 			break;
 			default:
 			break;
