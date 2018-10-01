@@ -82,9 +82,18 @@ set ["hiddenCharVal"](hiddenChar) { this.hiddenChar = hiddenChar; }
 			else if(globalLine.length && globalLine == "help"){display_help();}
 			else if(globalLine.length){myConsole.eraseLine(); globalLine=new String;}
 				else{
+					const spChars = ['\n','','\0'];
 					var arrConsole = this.innerText.split('■');
-					this.hiddenChar = arrConsole[1].slice(0,+(arrConsole[1].length>0)); 
+					var ol_hiddenChar = this.hiddenChar;
+					this.hiddenChar = arrConsole[1].slice(0,+(arrConsole[1].length>0)); //!def of hiddenChar
 					this.innerText = arrConsole[0]+'■'+arrConsole[1].slice(+(arrConsole[1].length>0)-(this.hiddenChar=="\n")); 
+					if(this.hiddenChar=='\n' && spChars.includes(ol_hiddenChar) && (arrConsole[1].length>1 && !spChars.includes(arrConsole[1].slice(1,2)))) { //need this for charset's imbrication
+						this.innerText = arrConsole[0]+'■'+arrConsole[1].slice(1+(arrConsole[1].length>0)); 
+						this.hiddenChar = arrConsole[1].slice(1,2);
+					}else if(this.hiddenChar=='\n' && spChars.includes(ol_hiddenChar)){
+						this.innerText = arrConsole[0]+'■'+arrConsole[1].slice((arrConsole[1].length>0));
+					}
+					//else do nothin'
 					
 				}
 	}
@@ -250,7 +259,7 @@ import {colorSave} from './storage.js';
 
 /* Console functions*/
 var save_output = function(index1,index2) {
-	  var output = myConsole.innerHTML.substring(0,index1)+(myConsole.hiddenChar!='\n'?myConsole.hiddenChar:'')+myConsole.innerHTML.substring(index2);
+	  var output = myConsole.innerHTML.substring(0,index1)+(index1 != 0?'<br>':'')+(myConsole.hiddenChar!='\n'?myConsole.hiddenChar:'')+myConsole.innerHTML.substring(index2);
 	  //console.log(output);
 	  chrome.storage.local.set({consoleSave: output}, function(){
 			colorSave.setData(output);
