@@ -69,5 +69,6 @@ function AddContent(consoleSave){
 	
 	myConsole.innerHTML= (consoleSave && consoleSave.length? consoleSave : '■' );
 	myConsole.initHiddenChar();
+	myConsole.caretblink=true;
 	
 }

@@ -1,7 +1,11 @@
 export class Console { 
+//#console;
+//#caret;
+
 constructor(data){
 	this.console = document.getElementById("typingConsole");
 	this.caret = -1;
+	this.caretblink = false;
 	this.initHiddenChar();
 	if(data!== undefined) this.innerHTML = data;
 	//if(this.innerHTML.match(/\u25A0/) == null) this.innerHTML += "&#x25A0;"
@@ -184,7 +188,7 @@ set ["hiddenCharVal"](hiddenChar) { this.hiddenChar = hiddenChar; }
 				 this.innerText = this.innerText.slice(0,IndexBr.start-1)+(isLB ?'\n■':'■')+this.innerText.slice(IndexBr.start,IndexBr.end)+ol_hiddenChar+this.innerText.slice(IndexBr.end+1+(['\n'].includes(ol_hiddenChar)));
 			}else if(IndexBr.start == 0){
 				if (IndexBr.end>0 ) this.hiddenChar = this.innerText.slice(0,1);
-				this.innerText = '■'+this.innerText.slice(+(IndexBr.end>0),IndexBr.end)+(IndexBr.end>0 ?ol_hiddenChar:'')+this.innerText.slice(IndexBr.end+1);
+				this.innerText = '■\n'+this.innerText.slice(+(IndexBr.end>0),IndexBr.end)+(IndexBr.end>0 ?ol_hiddenChar:'')+this.innerText.slice(IndexBr.end+1);
 			}
 			
 			// if(ol_hiddenChar == '\n' && this.innerHTML.slice(IndexBr.start-4, IndexBr.start)== "<br>") this.hiddenChar = '\n';
@@ -213,11 +217,12 @@ set ["hiddenCharVal"](hiddenChar) { this.hiddenChar = hiddenChar; }
 		
 		
 		initHiddenChar(i_char){
-		if (i_char !== undefined){ this.hiddenChar = i_char;}else{
 			var arrConsole = this.innerText.split('■');
+			if (i_char !== undefined){ this.hiddenChar = i_char;}else{
 			this.hiddenChar = (arrConsole && arrConsole[1] && arrConsole[1].slice(0,1) != "\n" ?arrConsole[0].slice(-1):'\n');
 			if(arrConsole[1] && this.hiddenChar != '\n') this.innerText = arrConsole[0].slice(0,-1) +'■' +arrConsole[1];
-		}
+			}
+			this.caret = arrConsole[0].length;
 		}
 
 };
@@ -244,6 +249,39 @@ function keyval(n){
     if (n == null) return 'undefined';
     return String.fromCharCode(n);
 }
+/* carset blink funcs*/
+
+function toggleBlink(forceCaret){
+	
+	if (typeof forceCaret != "undefined" && !forceCaret){
+		myConsole.caretPos = arrConsole[0].length;
+		myConsole.caretblink =true;
+	}
+	
+	/*   */
+	if(myConsole.caretblink){
+		var arrConsole = myConsole.innerText.split('■');
+		if(arrConsole.length == 1 && myConsole.caretPos >=0){
+			myConsole.innerText = arrConsole[0].slice(0,myConsole.caretPos)+'■'+arrConsole[0].slice(myConsole.caretPos+1)
+			myConsole.caretPos = -1;
+		}
+		else if(arrConsole.length >1 && !forceCaret){
+			myConsole.caretPos = arrConsole[0].length;
+			myConsole.innerText = arrConsole[0].slice(0,myConsole.caretPos +(myConsole.hiddenCharVal== '\n'|0))+(myConsole.hiddenCharVal!= '\n'?myConsole.hiddenCharVal :' ')+arrConsole[1];
+			
+		}else if( myConsole.caretPos ==-1  && !forceCaret){
+			if(!arrConsole) arrConsole[0]="";
+			myConsole.innerText = '■'+arrConsole[0];
+		}
+	}
+	/*  */
+	if (typeof forceCaret != "undefined" && forceCaret){
+		myConsole.caretblink =false;
+	}
+	
+}
+
+//setInterval(toggleBlink,200);
 
 /* retarded Options sync retrieval*/
 setTimeout(function(){
@@ -287,6 +325,9 @@ var restore_save = function() {
 			var cool = colorSave.color(OPTIONS.colorSatu); 
 			if(OPTIONS.Dynamic) document.body.style.backgroundColor = cool;
 			if(OPTIONS.soundVolume) colorSave.sound(OPTIONS.soundVolume);
+			
+			
+			myConsole.caretblink=true;
 	  });
 	  return true;
 	};
@@ -436,9 +477,11 @@ function keypress(e)
 
 function keydown(e)
 {
-   if (!e) e= event;
-   switch (e.which) {
-			
+	
+	if (!e) e= event;
+	var forced = false;
+	//switch (e.which){case 8: case 37: case 39: case 38: case 40: case 46: toggleBlink(1);forced=true; break;}
+	switch (e.which) {
 			case 8:myConsole.Erase();
 			break;
 			case 37:myConsole.moveLeft();
@@ -453,8 +496,9 @@ function keydown(e)
 			break;
 			default:
 			break;
-			
-   }
+	}
+	//if(forced)toggleBlink(false);
+	
 }
 
 /* paste event */
