@@ -188,7 +188,7 @@ set ["hiddenCharVal"](hiddenChar) { this.hiddenChar = hiddenChar; }
 				 this.innerText = this.innerText.slice(0,IndexBr.start-1)+(isLB ?'\n■':'■')+this.innerText.slice(IndexBr.start,IndexBr.end)+ol_hiddenChar+this.innerText.slice(IndexBr.end+1+(['\n'].includes(ol_hiddenChar)));
 			}else if(IndexBr.start == 0){
 				if (IndexBr.end>0 ) this.hiddenChar = this.innerText.slice(0,1);
-				this.innerText = '■\n'+this.innerText.slice(+(IndexBr.end>0),IndexBr.end)+(IndexBr.end>0 ?ol_hiddenChar:'')+this.innerText.slice(IndexBr.end+1);
+				this.innerText = '■'+this.innerText.slice(+(IndexBr.end>0),IndexBr.end)+(IndexBr.end>0 ?ol_hiddenChar:'')+this.innerText.slice(IndexBr.end+1);
 			}
 			
 			// if(ol_hiddenChar == '\n' && this.innerHTML.slice(IndexBr.start-4, IndexBr.start)== "<br>") this.hiddenChar = '\n';
