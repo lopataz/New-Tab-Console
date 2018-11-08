@@ -512,7 +512,7 @@ function handlePaste (e) {
     clipboardData = e.clipboardData || window.clipboardData;
     pastedData = clipboardData.getData('Text');
     
-    removeCaret();
+   // removeCaret();
 	myConsole.showChar(pastedData);
 	//addCaret();
 }
