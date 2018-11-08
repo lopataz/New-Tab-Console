@@ -37,7 +37,7 @@ get carsetIndexBrText(){
 	var arrConsole = this.innerText.split('■');
 		if(arrConsole && arrConsole.length){
 			index.start = arrConsole[0].lastIndexOf("\n");
-			if(index.start== -1 ) index.start=0;
+			//if(index.start== -1 ) index.start=0;
 			index.end = arrConsole[0].length;
 			index.data = arrConsole[0].substring(index.start+(index.start > 0 ));
 		}
@@ -183,12 +183,16 @@ set ["hiddenCharVal"](hiddenChar) { this.hiddenChar = hiddenChar; }
 			var ol_hiddenChar= this.hiddenChar;
 			var isLB = Number(this.innerText.slice(IndexBr.start-1,IndexBr.start) == "\n");
 						
-			if (IndexBr.start>0 ){console.log("1"+ol_hiddenChar+"2");console.log((isLB && !['','\n'].includes(ol_hiddenChar))+":"+isLB);
+			if (IndexBr.start>0 ){console.log("1"+ol_hiddenChar+"2"); //console.log((isLB && !['','\n'].includes(ol_hiddenChar))+":"+isLB);
 				this.hiddenChar =  (isLB? '':this.innerText.slice(IndexBr.start-1,IndexBr.start));
 				 this.innerText = this.innerText.slice(0,IndexBr.start-1)+(isLB ?'\n■':'■')+this.innerText.slice(IndexBr.start,IndexBr.end)+ol_hiddenChar+this.innerText.slice(IndexBr.end+1+(['\n'].includes(ol_hiddenChar)));
-			}else if(IndexBr.start == 0){
-				if (IndexBr.end>0 ) this.hiddenChar = this.innerText.slice(0,1);
-				this.innerText = '■'+this.innerText.slice(+(IndexBr.end>0),IndexBr.end)+(IndexBr.end>0 ?ol_hiddenChar:'')+this.innerText.slice(IndexBr.end+1);
+			}else if(IndexBr.start==0){
+				this.innerText = '■'+this.innerText.slice(0,IndexBr.end)+ol_hiddenChar+this.innerText.slice(IndexBr.end+1);
+			}else if(IndexBr.start == -1 && IndexBr.end>0 ){ //alert("D");
+				this.hiddenChar = (![" ", '\n'].includes(this.innerText.slice(0,1))  ? this.innerText.slice(0,1):(IndexBr.end>=2 ?this.innerText.slice(1,2):"\0"));
+				this.innerText = '■'+this.innerText.slice(+(IndexBr.end>0)+[" ", '\n'].includes(this.innerText.slice(0,1)),IndexBr.end)+ol_hiddenChar+this.innerText.slice(IndexBr.end+1);
+			}else if(IndexBr.start == -1 ){ //alert("0");
+				
 			}
 			
 			// if(ol_hiddenChar == '\n' && this.innerHTML.slice(IndexBr.start-4, IndexBr.start)== "<br>") this.hiddenChar = '\n';
