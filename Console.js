@@ -187,6 +187,7 @@ set ["hiddenCharVal"](hiddenChar) { this.hiddenChar = hiddenChar; }
 				this.hiddenChar =  (isLB? '':this.innerText.slice(IndexBr.start-1,IndexBr.start));
 				 this.innerText = this.innerText.slice(0,IndexBr.start-1)+(isLB ?'\n■':'■')+this.innerText.slice(IndexBr.start,IndexBr.end)+ol_hiddenChar+this.innerText.slice(IndexBr.end+1+(['\n'].includes(ol_hiddenChar)));
 			}else if(IndexBr.start==0){
+				this.hiddenChar = "";
 				this.innerText = '■'+this.innerText.slice(0,IndexBr.end)+ol_hiddenChar+this.innerText.slice(IndexBr.end+1);
 			}else if(IndexBr.start == -1 && IndexBr.end>0 ){ //alert("D");
 				this.hiddenChar = (![" ", '\n'].includes(this.innerText.slice(0,1))  ? this.innerText.slice(0,1):(IndexBr.end>=2 ?this.innerText.slice(1,2):"\0"));
