@@ -22,7 +22,7 @@ document.addEventListener("DOMContentLoaded", function(e){
 			items.favoriteColor+=Number(items.colorSatu).toString(16);items.Dynamic=true; }
 			else{ items.Dynamic=false;}
 			
-			OPTIONS=items;
+			OPTIONS=items; /* works ~=)*/
 			
 			//* SET GLOBAL VAR OPTIONS in a STYLESHEET / READ-ONLY *//
 			var style = document.createElement('style');
@@ -52,7 +52,8 @@ document.addEventListener("DOMContentLoaded", function(e){
 			}else if(typeof OPT_Apparent != "Object"){
 				document.addEventListener("click",function(){AddContent(result.consoleSave);},{once: true});
 			}else{
-				document.getElementById("typingConsole").innerHTML = "Internet Sync failed"; //&nbsp;
+				console.log("no sync");
+				//document.getElementById("typingConsole").innerHTML = "Internet Sync failed"; //&nbsp;
 				document.addEventListener("click",function(){AddContent(result.consoleSave);},{once: true});
 			}
 		},50);
@@ -62,6 +63,7 @@ document.addEventListener("DOMContentLoaded", function(e){
 
 function AddContent(consoleSave){
 	
+	myConsole.canAddContent=true;
 	
 	var cool = colorSave.color(OPTIONS.colorSatu); //in order to get the sounds inits
 	if(OPTIONS.Dynamic) document.body.style.backgroundColor = cool;

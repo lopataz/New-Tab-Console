@@ -3,6 +3,7 @@ export class Console {
 //#caret;
 
 constructor(data){
+	this.canAddContent = false;
 	this.console = document.getElementById("typingConsole");
 	this.caret = -1;
 	this.caretblink = false;
@@ -326,6 +327,7 @@ var restore_save = function() {
 	  chrome.storage.local.get(['consoleSave'], function(result) {
 		 colorSave.setData(result.consoleSave? result.consoleSave: "");
 		 myConsole = new Console(colorSave.output);
+		 myConsole.canAddContent=true;
 		 //addCaret();
 			var cool = colorSave.color(OPTIONS.colorSatu); 
 			if(OPTIONS.Dynamic) document.body.style.backgroundColor = cool;
@@ -467,24 +469,27 @@ function addCaret(){
 function keypress(e)
 {
    if (!e) e= event;
-  //removeCaret();
-   switch (e.which) {
-            case 13:myConsole.Evaluate(e); //Enter
-			break;
-			/*case 32:showHTML("&nbsp;"); // space
-			break;*/
-			
-			default: if(e.keyCode != 118 && e.keyCode !=  86) myConsole.showChar(keyval(e.keyCode)); else if(!e.ctrlKey) myConsole.showChar(keyval(e.keyCode)); //V ctrl+ V
-			break;
-   }
-   //addCaret();
+	if (myConsole.canAddContent ){
+	  
+	   switch (e.which) {
+				case 13:myConsole.Evaluate(e); //Enter
+				break;
+				/*case 32:showHTML("&nbsp;"); // space
+				break;*/
+				
+				default: if(e.keyCode != 118 && e.keyCode !=  86) myConsole.showChar(keyval(e.keyCode)); else if(!e.ctrlKey) myConsole.showChar(keyval(e.keyCode)); //V ctrl+ V
+				break;
+	   }
+	}
+   
 }
 
 function keydown(e)
 {
 	
 	if (!e) e= event;
-	var forced = false;
+	if (myConsole.canAddContent ){
+	
 	//switch (e.which){case 8: case 37: case 39: case 38: case 40: case 46: toggleBlink(1);forced=true; break;}
 	switch (e.which) {
 			case 8:myConsole.Erase();
@@ -502,8 +507,7 @@ function keydown(e)
 			default:
 			break;
 	}
-	//if(forced)toggleBlink(false);
-	
+	}
 }
 
 /* paste event */
